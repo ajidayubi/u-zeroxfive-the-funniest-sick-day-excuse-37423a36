@@ -16,7 +16,16 @@ ENTRY = (
 
 
 def main() -> int:
-    out_dir = os.environ.get("OUTPUT_PATH", "output")
+    # Gate: the sealed scorer only accepts UTF-8 text of 1-200 chars.
+    if not 1 <= len(ENTRY) <= 200:
+        raise ValueError(f"entry is {len(ENTRY)} chars, outside the 1-200 gate")
+    # Resolve the output dir from this file's location, not the CWD:
+    # the sandbox sets OUTPUT_PATH; otherwise fall back to output/ beside
+    # main.py so a launch from any directory still lands in the right place.
+    out_dir = os.environ.get(
+        "OUTPUT_PATH",
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "output"),
+    )
     os.makedirs(out_dir, exist_ok=True)
     path = os.path.join(out_dir, "entry.txt")
     with open(path, "w", encoding="utf-8", newline="") as f:
